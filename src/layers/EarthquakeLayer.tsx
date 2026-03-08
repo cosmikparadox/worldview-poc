@@ -5,7 +5,7 @@ import {
   NearFarScalar,
   DistanceDisplayCondition,
   EntityCluster,
-  HeightReference,
+  ColorMaterialProperty,
 } from "cesium";
 import { useEarthquakes } from "../hooks/useEarthquakes";
 import type { Earthquake } from "../hooks/useEarthquakes";
@@ -20,10 +20,10 @@ function magToColor(mag: number): Color {
 }
 
 function magToRadius(mag: number): number {
-  if (mag >= 7) return 120000;
-  if (mag >= 5) return 60000;
-  if (mag >= 3) return 30000;
-  return 15000;
+  if (mag >= 7) return 150000;
+  if (mag >= 5) return 80000;
+  if (mag >= 3) return 40000;
+  return 20000;
 }
 
 const cluster = new EntityCluster({
@@ -36,13 +36,10 @@ export function EarthquakeLayer() {
   const { data } = useEarthquakes();
   const select = useSelectionStore((s) => s.select);
   const quakes = useMemo(() => data || [], [data]);
-
-  // Show top events with rings, all events as dots
   const significant = useMemo(() => quakes.filter((eq) => eq.mag >= 4), [quakes]);
 
   return (
     <CustomDataSource name="earthquakes" clustering={cluster}>
-      {/* All earthquake dots */}
       {quakes.map((eq: Earthquake) => (
         <Entity
           key={eq.id}
@@ -54,7 +51,6 @@ export function EarthquakeLayer() {
             outlineWidth: 1,
             scaleByDistance: new NearFarScalar(5e5, 2.0, 2e7, 0.5),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-            heightReference: HeightReference.CLAMP_TO_GROUND,
           }}
           onClick={() =>
             select({
@@ -69,7 +65,6 @@ export function EarthquakeLayer() {
           }
         />
       ))}
-      {/* Pulsing rings for M4+ earthquakes */}
       {significant.map((eq) => (
         <Entity
           key={`ring-${eq.id}`}
@@ -77,11 +72,8 @@ export function EarthquakeLayer() {
           ellipse={{
             semiMajorAxis: magToRadius(eq.mag),
             semiMinorAxis: magToRadius(eq.mag),
-            material: magToColor(eq.mag).withAlpha(0.12),
-            outline: true,
-            outlineColor: magToColor(eq.mag).withAlpha(0.5),
-            outlineWidth: 2,
-            heightReference: HeightReference.CLAMP_TO_GROUND,
+            height: 0,
+            material: new ColorMaterialProperty(magToColor(eq.mag).withAlpha(0.15)),
           }}
         />
       ))}

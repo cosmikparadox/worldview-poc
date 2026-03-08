@@ -1,27 +1,28 @@
-// All external APIs proxied through Netlify _redirects to avoid CORS
+// Direct API URLs — USGS, EONET, NOAA all have CORS headers
+// OpenSky works from most origins. GDELT may need fallback.
 export const API = {
   earthquakes: {
-    url: "/api/usgs/earthquakes/feed/v1.0/summary/all_day.geojson",
+    url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
     interval: 5 * 60 * 1000,
   },
   disasters: {
-    url: "/api/eonet/v3/events?status=open&limit=50",
+    url: "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=50",
     interval: 15 * 60 * 1000,
   },
   flights: {
-    url: "/api/opensky/states/all",
-    interval: 60 * 1000, // 60s — be gentle on OpenSky rate limits
+    url: "https://opensky-network.org/api/states/all",
+    interval: 60 * 1000,
   },
   ships: {
     wsUrl: "wss://stream.aisstream.io/v0/stream",
     apiKey: import.meta.env.VITE_AISSTREAM_API_KEY || "",
   },
   news: {
-    url: "/api/gdelt/v2/geo/geo?query=supply%20chain%20OR%20shipping%20OR%20trade%20disruption&format=GeoJSON&maxrecords=200",
+    url: "https://api.gdeltproject.org/api/v2/geo/geo?query=supply%20chain%20OR%20shipping%20OR%20trade%20disruption&format=GeoJSON&maxrecords=200",
     interval: 10 * 60 * 1000,
   },
   spaceWeather: {
-    url: "/api/swpc/products/noaa-planetary-k-index.json",
+    url: "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
     interval: 15 * 60 * 1000,
   },
   commodities: {

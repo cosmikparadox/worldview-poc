@@ -4,7 +4,7 @@ import {
   Color,
   DistanceDisplayCondition,
   NearFarScalar,
-  HeightReference,
+  ColorMaterialProperty,
 } from "cesium";
 import { useDisasters } from "../hooks/useDisasters";
 import type { Disaster } from "../hooks/useDisasters";
@@ -21,16 +21,6 @@ function categoryColor(cat: string): Color {
   if (c.includes("earthquake")) return Color.fromCssColorString("#ffcc22");
   if (c.includes("drought")) return Color.fromCssColorString("#cc8844");
   return Color.fromCssColorString("#cccccc");
-}
-
-function categoryIcon(cat: string): string {
-  const c = cat.toLowerCase();
-  if (c.includes("wildfire")) return "\u{1F525}"; // fire
-  if (c.includes("volcano")) return "\u{1F30B}"; // volcano
-  if (c.includes("storm") || c.includes("cyclone")) return "\u{1F300}"; // cyclone
-  if (c.includes("flood")) return "\u{1F30A}"; // wave
-  if (c.includes("earthquake")) return "\u{1F4A5}"; // boom
-  return "\u26A0"; // warning
 }
 
 export function DisasterLayer() {
@@ -53,10 +43,9 @@ export function DisasterLayer() {
               outlineWidth: 2,
               scaleByDistance: new NearFarScalar(5e5, 1.8, 2e7, 0.5),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-              heightReference: HeightReference.CLAMP_TO_GROUND,
             }}
             label={{
-              text: `${categoryIcon(d.category)} ${d.category}`,
+              text: d.category,
               font: "bold 12px sans-serif",
               fillColor: Color.WHITE,
               outlineColor: Color.BLACK,
@@ -67,13 +56,10 @@ export function DisasterLayer() {
               distanceDisplayCondition: new DistanceDisplayCondition(0, 10_000_000),
             }}
             ellipse={{
-              semiMajorAxis: 80000,
-              semiMinorAxis: 80000,
-              material: color.withAlpha(0.1),
-              outline: true,
-              outlineColor: color.withAlpha(0.4),
-              outlineWidth: 2,
-              heightReference: HeightReference.CLAMP_TO_GROUND,
+              semiMajorAxis: 100000,
+              semiMinorAxis: 100000,
+              height: 0,
+              material: new ColorMaterialProperty(color.withAlpha(0.12)),
             }}
             onClick={() =>
               select({

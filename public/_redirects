@@ -1,6 +1,0 @@
-# Proxy APIs through Netlify to avoid CORS issues
-/api/opensky/*  https://opensky-network.org/api/:splat  200
-/api/gdelt/*    https://api.gdeltproject.org/api/:splat  200
-/api/eonet/*    https://eonet.gsfc.nasa.gov/api/:splat  200
-/api/usgs/*     https://earthquake.usgs.gov/:splat  200
-/api/swpc/*     https://services.swpc.noaa.gov/:splat  200

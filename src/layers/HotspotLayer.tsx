@@ -5,7 +5,7 @@ import {
   VerticalOrigin,
   DistanceDisplayCondition,
   NearFarScalar,
-  HeightReference,
+  ColorMaterialProperty,
 } from "cesium";
 import { HOTSPOTS } from "../config/hotspots";
 import { useSelectionStore } from "../stores/useSelectionStore";
@@ -28,7 +28,6 @@ export function HotspotLayer() {
               outlineWidth: 2,
               scaleByDistance: new NearFarScalar(5e5, 1.6, 2e7, 0.6),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-              heightReference: HeightReference.CLAMP_TO_GROUND,
             }}
             label={{
               text: h.name,
@@ -45,11 +44,8 @@ export function HotspotLayer() {
             ellipse={{
               semiMajorAxis: h.radius * 1000 || 200000,
               semiMinorAxis: h.radius * 1000 || 200000,
-              material: color.withAlpha(0.08),
-              outline: true,
-              outlineColor: color.withAlpha(0.35),
-              outlineWidth: 2,
-              heightReference: HeightReference.CLAMP_TO_GROUND,
+              height: 0,
+              material: new ColorMaterialProperty(color.withAlpha(0.1)),
             }}
             onClick={() =>
               select({
