@@ -6,10 +6,12 @@ import { DisasterLayer } from "./layers/DisasterLayer";
 import { HotspotLayer } from "./layers/HotspotLayer";
 import { FlightLayer } from "./layers/FlightLayer";
 import { NewsLayer } from "./layers/NewsLayer";
+import { ShipLayer } from "./layers/ShipLayer";
 import { SpaceWeatherOverlay } from "./layers/SpaceWeatherOverlay";
 import { LayerPanel } from "./components/panels/LayerPanel";
 import { DataSourcePanel } from "./components/panels/DataSourcePanel";
 import { DataSourcesPanel } from "./components/panels/DataSourcesPanel";
+import { CommodityPanel } from "./components/panels/CommodityPanel";
 import { useLayerStore } from "./stores/useLayerStore";
 import { useDataSourceStore } from "./stores/useDataSourceStore";
 import "./styles/index.css";
@@ -28,11 +30,15 @@ export default function App() {
         {layers.disasters && <DisasterLayer />}
         {layers.hotspots && <HotspotLayer />}
         {layers.flights && <FlightLayer />}
+        {layers.ships && <ShipLayer />}
         {layers.news && <NewsLayer />}
       </WorldviewViewer>
 
       {/* Space weather overlay (top-right) */}
       {layers.spaceWeather && <SpaceWeatherOverlay />}
+
+      {/* Commodity panel (bottom-left, above activity ticker) */}
+      {layers.commodities && <CommodityPanel />}
 
       {/* Sidebar toggle */}
       <button

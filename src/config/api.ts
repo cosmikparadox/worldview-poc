@@ -11,14 +11,15 @@ export const API = {
   },
   flights: {
     url: "https://opensky-network.org/api/states/all",
-    interval: 60 * 1000,
+    interval: 120 * 1000, // 2min to avoid 429 rate limiting on free tier
   },
   ships: {
     wsUrl: "wss://stream.aisstream.io/v0/stream",
     apiKey: import.meta.env.VITE_AISSTREAM_API_KEY || "",
   },
   news: {
-    url: "https://api.gdeltproject.org/api/v2/geo/geo?query=supply%20chain%20OR%20shipping%20OR%20trade%20disruption&format=GeoJSON&maxrecords=200",
+    // Netlify rewrite proxy to avoid CORS issues with GDELT
+    url: "/api/gdelt?query=supply%20chain%20OR%20shipping%20OR%20trade%20disruption&format=GeoJSON&maxrecords=200",
     interval: 10 * 60 * 1000,
   },
   spaceWeather: {

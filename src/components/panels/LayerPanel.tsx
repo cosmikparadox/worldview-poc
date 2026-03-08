@@ -12,6 +12,7 @@ const LAYER_META: { id: LayerId; label: string; color: string; group: string }[]
   { id: "news", label: "News Events", color: "#a06fff", group: "Intelligence" },
   { id: "conflicts", label: "Conflicts", color: "#ff4444", group: "Intelligence" },
   { id: "spaceWeather", label: "Space Weather", color: "#ffbb44", group: "Environment" },
+  { id: "commodities", label: "Commodities", color: "#44bbff", group: "Economic" },
 ];
 
 function StatusDot({ status }: { status?: FeedInfo["status"] }) {
