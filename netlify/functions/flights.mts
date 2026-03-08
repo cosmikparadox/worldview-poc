@@ -32,8 +32,8 @@ export default async (req: Request, _context: Context) => {
     const headers: Record<string, string> = { "User-Agent": "worldview-poc/1.0" };
 
     // Optional: registered OpenSky credentials for 4x rate limit (4000/day vs 100)
-    const username = Netlify.env.get("OPENSKY_USERNAME") || "";
-    const password = Netlify.env.get("OPENSKY_PASSWORD") || "";
+    const username = process.env.OPENSKY_USERNAME || "";
+    const password = process.env.OPENSKY_PASSWORD || "";
     if (username && password) {
       headers["Authorization"] = "Basic " + btoa(`${username}:${password}`);
     }

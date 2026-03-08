@@ -24,7 +24,7 @@ export default async (req: Request, _context: Context) => {
     });
   }
 
-  const apiKey = Netlify.env.get("OTX_API_KEY") || "";
+  const apiKey = process.env.OTX_API_KEY || "";
   if (!apiKey) {
     return new Response(JSON.stringify({ results: [] }), {
       headers: { ...CORS_HEADERS, "X-Cache": "NO-KEY" },

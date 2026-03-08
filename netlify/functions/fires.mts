@@ -24,7 +24,7 @@ export default async (req: Request, _context: Context) => {
     });
   }
 
-  const mapKey = Netlify.env.get("NASA_FIRMS_MAP_KEY") || "";
+  const mapKey = process.env.NASA_FIRMS_MAP_KEY || "";
   if (!mapKey) {
     // Return empty array instead of error so the layer degrades gracefully
     return new Response(JSON.stringify([]), {

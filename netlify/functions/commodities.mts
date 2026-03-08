@@ -19,7 +19,7 @@ export default async (req: Request, _context: Context) => {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const apiKey = Netlify.env.get("VITE_ALPHA_VANTAGE_KEY") || "";
+  const apiKey = process.env.VITE_ALPHA_VANTAGE_KEY || "";
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: "VITE_ALPHA_VANTAGE_KEY not configured" }),
