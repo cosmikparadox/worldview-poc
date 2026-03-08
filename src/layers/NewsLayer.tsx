@@ -24,12 +24,13 @@ export function NewsLayer() {
           key={n.id}
           position={Cartesian3.fromDegrees(n.lon, n.lat)}
           point={{
-            pixelSize: 10,
-            color: toneColor(n.tone).withAlpha(0.85),
-            outlineColor: Color.WHITE.withAlpha(0.3),
-            outlineWidth: 1,
-            scaleByDistance: new NearFarScalar(5e5, 1.6, 2e7, 0.4),
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 40_000_000),
+            pixelSize: 14,
+            color: toneColor(n.tone).withAlpha(0.9),
+            outlineColor: Color.WHITE.withAlpha(0.4),
+            outlineWidth: 1.5,
+            scaleByDistance: new NearFarScalar(5e5, 1.8, 3e7, 0.6),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           }}
           onClick={() =>
             select({

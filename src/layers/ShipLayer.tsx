@@ -84,11 +84,12 @@ export function ShipLayer() {
     for (const s of data) {
       collection.add({
         position: Cartesian3.fromDegrees(s.lon, s.lat, 0),
-        pixelSize: 3,
+        pixelSize: 6,
         color: SHIP_COLOR,
         outlineColor: SHIP_OUTLINE,
         outlineWidth: 1,
-        scaleByDistance: new NearFarScalar(5e4, 2.5, 2e7, 0.3),
+        scaleByDistance: new NearFarScalar(5e4, 2.5, 3e7, 0.6),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
       });
     }
   }, [data]);

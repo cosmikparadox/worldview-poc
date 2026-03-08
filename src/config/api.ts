@@ -11,7 +11,7 @@ export const API = {
   },
   flights: {
     url: "https://opensky-network.org/api/states/all",
-    interval: 120 * 1000, // 2min to avoid 429 rate limiting on free tier
+    interval: 5 * 60 * 1000, // 5min to avoid 429 rate limiting on free tier
   },
   ships: {
     wsUrl: "wss://stream.aisstream.io/v0/stream",

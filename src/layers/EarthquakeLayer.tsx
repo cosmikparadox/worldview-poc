@@ -16,27 +16,27 @@ function magToColor(mag: number): Color {
   if (mag >= 7) return Color.fromCssColorString("#ff2020");
   if (mag >= 5) return Color.fromCssColorString("#ff8844");
   if (mag >= 3) return Color.fromCssColorString("#ffcc22");
-  return Color.fromCssColorString("#66cc66");
+  return Color.fromCssColorString("#88dd66");
 }
 
 function magToRadius(mag: number): number {
-  if (mag >= 7) return 150000;
-  if (mag >= 5) return 80000;
-  if (mag >= 3) return 40000;
-  return 20000;
+  if (mag >= 7) return 250000;
+  if (mag >= 5) return 150000;
+  if (mag >= 3) return 80000;
+  return 30000;
 }
 
 const cluster = new EntityCluster({
   enabled: true,
-  pixelRange: 25,
-  minimumClusterSize: 8,
+  pixelRange: 30,
+  minimumClusterSize: 10,
 });
 
 export function EarthquakeLayer() {
   const { data } = useEarthquakes();
   const select = useSelectionStore((s) => s.select);
   const quakes = useMemo(() => data || [], [data]);
-  const significant = useMemo(() => quakes.filter((eq) => eq.mag >= 4), [quakes]);
+  const significant = useMemo(() => quakes.filter((eq) => eq.mag >= 3.5), [quakes]);
 
   return (
     <CustomDataSource name="earthquakes" clustering={cluster}>
@@ -45,12 +45,13 @@ export function EarthquakeLayer() {
           key={eq.id}
           position={Cartesian3.fromDegrees(eq.lon, eq.lat)}
           point={{
-            pixelSize: 6 + eq.mag * 3,
-            color: magToColor(eq.mag).withAlpha(0.85),
-            outlineColor: Color.BLACK.withAlpha(0.4),
-            outlineWidth: 1,
-            scaleByDistance: new NearFarScalar(5e5, 2.0, 2e7, 0.5),
+            pixelSize: 8 + eq.mag * 4,
+            color: magToColor(eq.mag).withAlpha(0.9),
+            outlineColor: Color.WHITE.withAlpha(0.5),
+            outlineWidth: 1.5,
+            scaleByDistance: new NearFarScalar(5e5, 2.0, 3e7, 0.8),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           }}
           onClick={() =>
             select({
@@ -73,7 +74,7 @@ export function EarthquakeLayer() {
             semiMajorAxis: magToRadius(eq.mag),
             semiMinorAxis: magToRadius(eq.mag),
             height: 0,
-            material: new ColorMaterialProperty(magToColor(eq.mag).withAlpha(0.15)),
+            material: new ColorMaterialProperty(magToColor(eq.mag).withAlpha(0.18)),
           }}
         />
       ))}

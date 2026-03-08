@@ -23,6 +23,16 @@ function categoryColor(cat: string): Color {
   return Color.fromCssColorString("#cccccc");
 }
 
+function categoryIcon(cat: string): string {
+  const c = cat.toLowerCase();
+  if (c.includes("wildfire")) return "FIRE";
+  if (c.includes("volcano")) return "VOLCANO";
+  if (c.includes("storm") || c.includes("cyclone")) return "STORM";
+  if (c.includes("flood")) return "FLOOD";
+  if (c.includes("ice") || c.includes("snow")) return "ICE";
+  return cat.toUpperCase().slice(0, 6);
+}
+
 export function DisasterLayer() {
   const { data } = useDisasters();
   const select = useSelectionStore((s) => s.select);
@@ -37,29 +47,31 @@ export function DisasterLayer() {
             key={d.id}
             position={Cartesian3.fromDegrees(d.lon, d.lat)}
             point={{
-              pixelSize: 18,
+              pixelSize: 22,
               color: color.withAlpha(0.9),
-              outlineColor: Color.WHITE.withAlpha(0.7),
-              outlineWidth: 2,
-              scaleByDistance: new NearFarScalar(5e5, 1.8, 2e7, 0.5),
+              outlineColor: Color.WHITE.withAlpha(0.8),
+              outlineWidth: 2.5,
+              scaleByDistance: new NearFarScalar(5e5, 2.0, 3e7, 0.7),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             label={{
-              text: d.category,
-              font: "bold 12px sans-serif",
+              text: categoryIcon(d.category),
+              font: "bold 11px monospace",
               fillColor: Color.WHITE,
               outlineColor: Color.BLACK,
-              outlineWidth: 3,
+              outlineWidth: 4,
               style: 2,
-              pixelOffset: { x: 0, y: -22 } as any,
-              scaleByDistance: new NearFarScalar(5e5, 1.0, 8e6, 0),
-              distanceDisplayCondition: new DistanceDisplayCondition(0, 10_000_000),
+              pixelOffset: { x: 0, y: -26 } as any,
+              scaleByDistance: new NearFarScalar(5e5, 1.2, 1e7, 0.4),
+              distanceDisplayCondition: new DistanceDisplayCondition(0, 15_000_000),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             ellipse={{
-              semiMajorAxis: 100000,
-              semiMinorAxis: 100000,
+              semiMajorAxis: 150000,
+              semiMinorAxis: 150000,
               height: 0,
-              material: new ColorMaterialProperty(color.withAlpha(0.12)),
+              material: new ColorMaterialProperty(color.withAlpha(0.15)),
             }}
             onClick={() =>
               select({
