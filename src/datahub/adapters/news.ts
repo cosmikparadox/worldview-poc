@@ -18,7 +18,7 @@ export const gdeltAdapter: SourceAdapter<NewsItem[]> = {
         source: "gdelt",
         title: String(f.properties.name || "News event"),
         url: String(f.properties.url || f.properties.urlmobile || ""),
-        tone: Number(f.properties.tonez || 0),
+        tone: Number(f.properties.tone || f.properties.tonez || 0),
       }));
   },
 };
