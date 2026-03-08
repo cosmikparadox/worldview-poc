@@ -7,21 +7,33 @@ import { HotspotLayer } from "./layers/HotspotLayer";
 import { FlightLayer } from "./layers/FlightLayer";
 import { NewsLayer } from "./layers/NewsLayer";
 import { ShipLayer } from "./layers/ShipLayer";
+import { SupplyChainLayer } from "./layers/SupplyChainLayer";
+import { FireLayer } from "./layers/FireLayer";
+import { ConflictLayer } from "./layers/ConflictLayer";
+import { WeatherLayer } from "./layers/WeatherLayer";
+import { CyberThreatLayer } from "./layers/CyberThreatLayer";
 import { SpaceWeatherOverlay } from "./layers/SpaceWeatherOverlay";
+import { RiskOverlayLayer } from "./layers/RiskOverlayLayer";
 import { LayerPanel } from "./components/panels/LayerPanel";
 import { DataSourcePanel } from "./components/panels/DataSourcePanel";
 import { DataSourcesPanel } from "./components/panels/DataSourcesPanel";
 import { CommodityPanel } from "./components/panels/CommodityPanel";
+import { AlertsPanel, useAlertBadgeCount } from "./components/panels/AlertsPanel";
 import { useLayerStore } from "./stores/useLayerStore";
 import { useDataSourceStore } from "./stores/useDataSourceStore";
+import { useRiskEngine } from "./intelligence/useRiskEngine";
 import "./styles/index.css";
 
-type SidebarTab = "layers" | "sources";
+type SidebarTab = "layers" | "sources" | "intel";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [tab, setTab] = useState<SidebarTab>("layers");
   const layers = useLayerStore((s) => s.layers);
+  const alertBadge = useAlertBadgeCount();
+
+  // Always-on intelligence engine
+  useRiskEngine();
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -32,6 +44,12 @@ export default function App() {
         {layers.flights && <FlightLayer />}
         {layers.ships && <ShipLayer />}
         {layers.news && <NewsLayer />}
+        {layers.conflicts && <ConflictLayer />}
+        {layers.fires && <FireLayer />}
+        {layers.weather && <WeatherLayer />}
+        {layers.cyberThreats && <CyberThreatLayer />}
+        {layers.commodities && <SupplyChainLayer />}
+        {layers.riskOverlay && <RiskOverlayLayer />}
       </WorldviewViewer>
 
       {/* Space weather overlay (top-right) */}
@@ -71,6 +89,31 @@ export default function App() {
           >
             Data Sources
           </button>
+          <button
+            className={`wv-tab ${tab === "intel" ? "wv-tab-active" : ""}`}
+            onClick={() => setTab("intel")}
+            style={{ position: "relative" }}
+          >
+            Intel
+            {alertBadge > 0 && (
+              <span style={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                background: "#ff2244",
+                color: "#fff",
+                fontSize: 8,
+                fontWeight: 700,
+                borderRadius: 6,
+                padding: "1px 4px",
+                minWidth: 14,
+                textAlign: "center",
+                lineHeight: "12px",
+              }}>
+                {alertBadge}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Tab content */}
@@ -80,6 +123,8 @@ export default function App() {
               <LayerPanel />
               <DataSourcePanel />
             </>
+          ) : tab === "intel" ? (
+            <AlertsPanel />
           ) : (
             <DataSourcesPanel />
           )}

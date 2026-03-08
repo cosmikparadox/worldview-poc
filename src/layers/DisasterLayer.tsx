@@ -53,7 +53,6 @@ export function DisasterLayer() {
               outlineWidth: 2.5,
               scaleByDistance: new NearFarScalar(5e5, 2.0, 3e7, 0.7),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             label={{
               text: categoryIcon(d.category),
@@ -65,7 +64,6 @@ export function DisasterLayer() {
               pixelOffset: { x: 0, y: -26 } as any,
               scaleByDistance: new NearFarScalar(5e5, 1.2, 1e7, 0.4),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 15_000_000),
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             ellipse={{
               semiMajorAxis: 150000,

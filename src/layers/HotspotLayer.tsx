@@ -28,7 +28,6 @@ export function HotspotLayer() {
               outlineWidth: 3,
               scaleByDistance: new NearFarScalar(5e5, 1.8, 3e7, 0.7),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             label={{
               text: h.name,
@@ -41,7 +40,6 @@ export function HotspotLayer() {
               pixelOffset: { x: 0, y: -22 } as any,
               scaleByDistance: new NearFarScalar(5e5, 1.2, 2e7, 0.3),
               distanceDisplayCondition: new DistanceDisplayCondition(0, 15_000_000),
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             }}
             ellipse={{
               semiMajorAxis: h.radius * 1000 || 250000,

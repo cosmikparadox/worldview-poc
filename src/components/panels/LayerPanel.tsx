@@ -11,8 +11,12 @@ const LAYER_META: { id: LayerId; label: string; color: string; group: string }[]
   { id: "ships", label: "Ships (AIS)", color: "#22ddaa", group: "Transport" },
   { id: "news", label: "News Events", color: "#a06fff", group: "Intelligence" },
   { id: "conflicts", label: "Conflicts", color: "#ff4444", group: "Intelligence" },
+  { id: "cyberThreats", label: "Cyber Threats", color: "#44ff88", group: "Intelligence" },
   { id: "spaceWeather", label: "Space Weather", color: "#ffbb44", group: "Environment" },
+  { id: "weather", label: "Weather", color: "#22dd88", group: "Environment" },
+  { id: "fires", label: "Active Fires", color: "#ff6622", group: "Environment" },
   { id: "commodities", label: "Commodities", color: "#44bbff", group: "Economic" },
+  { id: "riskOverlay", label: "Risk Overlay", color: "#ff4488", group: "Intelligence" },
 ];
 
 function StatusDot({ status }: { status?: FeedInfo["status"] }) {

@@ -8,6 +8,10 @@ const sourceColors: Record<string, string> = {
   ship: "#22ddaa",
   news: "#bb88ff",
   conflict: "#ff4444",
+  supplyChain: "#44bbff",
+  weather: "#22dd88",
+  fire: "#ff6622",
+  cyber: "#44ff88",
 };
 
 const sourceIcons: Record<string, string> = {
@@ -18,6 +22,10 @@ const sourceIcons: Record<string, string> = {
   ship: "\u{1F6A2}",
   news: "\u{1F4F0}",
   conflict: "\u{1F4A3}",
+  supplyChain: "\u{1F517}",
+  weather: "\u{1F324}\uFE0F",
+  fire: "\u{1F525}",
+  cyber: "\u{1F6E1}\uFE0F",
 };
 
 export function EntityInfoPanel() {

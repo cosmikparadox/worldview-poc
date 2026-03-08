@@ -51,7 +51,6 @@ export function EarthquakeLayer() {
             outlineWidth: 1.5,
             scaleByDistance: new NearFarScalar(5e5, 2.0, 3e7, 0.8),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           }}
           onClick={() =>
             select({

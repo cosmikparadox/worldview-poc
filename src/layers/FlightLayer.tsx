@@ -112,7 +112,7 @@ export function FlightLayer() {
         outlineColor: Color.WHITE.withAlpha(0.3),
         outlineWidth: 1,
         scaleByDistance: new NearFarScalar(1e5, 2.5, 3e7, 0.8),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        disableDepthTestDistance: 5e6,
       });
     }
   }, [data]);

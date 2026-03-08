@@ -1,5 +1,6 @@
-// Direct API URLs — USGS, EONET, NOAA all have CORS headers
-// OpenSky works from most origins. GDELT may need fallback.
+// API Configuration
+// Direct APIs: USGS, EONET, NOAA (CORS-friendly, no auth needed)
+// Proxied APIs: Flights, News, Commodities (via Netlify Functions for caching + auth)
 export const API = {
   earthquakes: {
     url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
@@ -10,16 +11,15 @@ export const API = {
     interval: 15 * 60 * 1000,
   },
   flights: {
-    url: "https://opensky-network.org/api/states/all",
-    interval: 5 * 60 * 1000, // 5min to avoid 429 rate limiting on free tier
+    url: "/api/flights", // Netlify Function: server-side cached OpenSky proxy
+    interval: 5 * 60 * 1000,
   },
   ships: {
     wsUrl: "wss://stream.aisstream.io/v0/stream",
     apiKey: import.meta.env.VITE_AISSTREAM_API_KEY || "",
   },
   news: {
-    // Netlify rewrite proxy to avoid CORS issues with GDELT
-    url: "/api/gdelt?query=supply%20chain%20OR%20shipping%20OR%20trade%20disruption&format=GeoJSON&maxrecords=200",
+    url: "/api/news", // Netlify Function: server-side cached GDELT proxy
     interval: 10 * 60 * 1000,
   },
   spaceWeather: {
@@ -27,6 +27,7 @@ export const API = {
     interval: 15 * 60 * 1000,
   },
   commodities: {
+    proxyUrl: "/api/commodities", // Netlify Function: server-side cached Alpha Vantage proxy
     baseUrl: "https://www.alphavantage.co/query",
     apiKey: import.meta.env.VITE_ALPHA_VANTAGE_KEY || "",
     interval: 30 * 60 * 1000,

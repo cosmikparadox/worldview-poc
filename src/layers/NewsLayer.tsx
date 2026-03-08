@@ -30,7 +30,6 @@ export function NewsLayer() {
             outlineWidth: 1.5,
             scaleByDistance: new NearFarScalar(5e5, 1.8, 3e7, 0.6),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           }}
           onClick={() =>
             select({

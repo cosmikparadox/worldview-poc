@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type LayerId = "earthquakes" | "disasters" | "flights" | "ships" | "news" | "conflicts" | "hotspots" | "spaceWeather" | "commodities";
+export type LayerId = "earthquakes" | "disasters" | "flights" | "ships" | "news" | "conflicts" | "hotspots" | "spaceWeather" | "commodities" | "weather" | "fires" | "cyberThreats" | "riskOverlay";
 
 interface LayerState {
   layers: Record<LayerId, boolean>;
@@ -15,10 +15,14 @@ export const useLayerStore = create<LayerState>((set) => ({
     flights: true,
     ships: true,
     news: true,
-    conflicts: false, // needs API key
+    conflicts: true,
     hotspots: true,
     spaceWeather: true,
     commodities: true,
+    weather: false,
+    fires: true,
+    cyberThreats: false,
+    riskOverlay: true,
   },
   toggle: (id) => set((s) => ({ layers: { ...s.layers, [id]: !s.layers[id] } })),
   setEnabled: (id, enabled) => set((s) => ({ layers: { ...s.layers, [id]: enabled } })),

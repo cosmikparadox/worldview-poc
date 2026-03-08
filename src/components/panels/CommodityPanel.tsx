@@ -1,10 +1,22 @@
 import { useCommodities } from "../../hooks/useCommodities";
 import type { CommodityPrice } from "../../hooks/useCommodities";
+import { useSupplyChainStore } from "../../stores/useSupplyChainStore";
 
-function PriceRow({ c }: { c: CommodityPrice }) {
+function PriceRow({
+  c,
+  isActive,
+  onToggle,
+}: {
+  c: CommodityPrice;
+  isActive: boolean;
+  onToggle: () => void;
+}) {
   const isPositive = c.change >= 0;
   return (
-    <div className="cm-row">
+    <div
+      className={`cm-row ${isActive ? "cm-row-active" : ""}`}
+      onClick={onToggle}
+    >
       <div className="cm-left">
         <div className="cm-name">{c.name}</div>
         <div className="cm-unit">{c.unit}</div>
@@ -21,6 +33,8 @@ function PriceRow({ c }: { c: CommodityPrice }) {
 
 export function CommodityPanel() {
   const { data } = useCommodities();
+  const activeCommodity = useSupplyChainStore((s) => s.activeCommodity);
+  const toggleCommodity = useSupplyChainStore((s) => s.toggleCommodity);
 
   if (data.length === 0) return null;
 
@@ -29,9 +43,15 @@ export function CommodityPanel() {
       <div className="cm-header">
         <span className="cm-icon">$</span>
         <span className="cm-title">COMMODITIES</span>
+        <span className="cm-hint">click to view routes</span>
       </div>
       {data.map((c) => (
-        <PriceRow key={c.symbol} c={c} />
+        <PriceRow
+          key={c.symbol}
+          c={c}
+          isActive={activeCommodity === c.symbol}
+          onToggle={() => toggleCommodity(c.symbol)}
+        />
       ))}
     </div>
   );

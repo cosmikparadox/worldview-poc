@@ -10,32 +10,25 @@ import {
   ScreenSpaceEventType,
   defined,
 } from "cesium";
-import { useShips } from "../hooks/useShips";
+import { useDataHub } from "../datahub/useDataHub";
 import { useSelectionStore } from "../stores/useSelectionStore";
 
-const SHIP_COLOR = Color.fromCssColorString("#22ddaa").withAlpha(0.85);
-const SHIP_OUTLINE = Color.fromCssColorString("#0a6644").withAlpha(0.5);
-
-function shipTypeLabel(type: number): string {
-  if (type >= 70 && type <= 79) return "Cargo";
-  if (type >= 80 && type <= 89) return "Tanker";
-  if (type >= 60 && type <= 69) return "Passenger";
-  if (type >= 40 && type <= 49) return "High-Speed Craft";
-  if (type >= 30 && type <= 39) return "Fishing";
-  if (type >= 50 && type <= 59) return "Special Craft";
-  return "Vessel";
+function fireColor(confidence: string, frp: number): Color {
+  if (frp > 100) return Color.fromCssColorString("#ff2200"); // intense
+  if (frp > 30) return Color.fromCssColorString("#ff6600");  // moderate
+  if (confidence === "high") return Color.fromCssColorString("#ff8800");
+  return Color.fromCssColorString("#ffaa33"); // low
 }
 
-export function ShipLayer() {
+export function FireLayer() {
   const { viewer } = useCesium();
-  const { data } = useShips();
+  const { data } = useDataHub("fire");
   const select = useSelectionStore((s) => s.select);
   const collectionRef = useRef<PointPrimitiveCollection | null>(null);
   const handlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
 
-  // Create PointPrimitiveCollection once
   useEffect(() => {
     if (!viewer) return;
     const collection = new PointPrimitiveCollection();
@@ -47,21 +40,22 @@ export function ShipLayer() {
       const picked = viewer.scene.pick(movement.position);
       if (defined(picked) && picked.primitive && picked.collection === collection) {
         const idx = picked.primitive._index ?? -1;
-        const ships = dataRef.current;
-        if (ships && idx >= 0 && idx < ships.length) {
-          const s = ships[idx];
+        const fires = dataRef.current;
+        if (fires && idx >= 0 && idx < fires.length) {
+          const f = fires[idx];
           select({
-            source: "ship",
-            id: String(s.mmsi),
-            title: s.name,
-            description: `${shipTypeLabel(s.shipType)} · ${s.sog.toFixed(1)} kn · COG ${Math.round(s.cog)}°`,
-            lat: s.lat,
-            lon: s.lon,
+            source: "fire",
+            id: f.id,
+            title: `Fire Hotspot`,
+            description: `${f.satellite} · ${f.confidence} confidence · FRP ${f.frp.toFixed(0)} MW`,
+            lat: f.lat,
+            lon: f.lon,
             meta: {
-              mmsi: s.mmsi,
-              type: shipTypeLabel(s.shipType),
-              speed: `${s.sog.toFixed(1)} kn`,
-              course: `${Math.round(s.cog)}°`,
+              brightness: Math.round(f.brightness),
+              confidence: f.confidence,
+              frp: f.frp.toFixed(1),
+              satellite: f.satellite,
+              dayNight: f.dayNight === "D" ? "Day" : "Night",
             },
           });
         }
@@ -75,20 +69,21 @@ export function ShipLayer() {
     };
   }, [viewer, select]);
 
-  // Update points when data changes
   useEffect(() => {
     const collection = collectionRef.current;
     if (!collection || !data) return;
 
     collection.removeAll();
-    for (const s of data) {
+    for (const f of data) {
+      const color = fireColor(f.confidence, f.frp);
+      const size = Math.min(4 + f.frp * 0.05, 12);
       collection.add({
-        position: Cartesian3.fromDegrees(s.lon, s.lat, 0),
-        pixelSize: 6,
-        color: SHIP_COLOR,
-        outlineColor: SHIP_OUTLINE,
+        position: Cartesian3.fromDegrees(f.lon, f.lat, 0),
+        pixelSize: size,
+        color: color.withAlpha(0.85),
+        outlineColor: Color.fromCssColorString("#ff4400").withAlpha(0.3),
         outlineWidth: 1,
-        scaleByDistance: new NearFarScalar(5e4, 2.5, 3e7, 0.6),
+        scaleByDistance: new NearFarScalar(1e5, 2.0, 3e7, 0.5),
       });
     }
   }, [data]);

@@ -11,10 +11,3 @@
   [headers.values]
     X-Frame-Options = "ALLOWALL"
     Content-Security-Policy = "frame-ancestors *"
-
-# Proxy GDELT API to avoid CORS (status 200 = server-side rewrite)
-[[redirects]]
-  from = "/api/gdelt"
-  to = "https://api.gdeltproject.org/api/v2/geo/geo"
-  status = 200
-  force = true

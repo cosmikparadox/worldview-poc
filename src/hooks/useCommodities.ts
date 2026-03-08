@@ -11,84 +11,79 @@ export interface CommodityPrice {
   lastUpdated: string;
 }
 
-// Alpha Vantage commodity-specific API functions (free tier)
-// Docs: https://www.alphavantage.co/documentation/#commodities
-const COMMODITIES = [
-  { name: "Crude Oil (WTI)", fn: "WTI", unit: "$/barrel" },
-  { name: "Crude Oil (Brent)", fn: "BRENT", unit: "$/barrel" },
-  { name: "Natural Gas", fn: "NATURAL_GAS", unit: "$/MMBtu" },
-  { name: "Copper", fn: "COPPER", unit: "$/lb" },
-  { name: "Aluminum", fn: "ALUMINUM", unit: "$/mt" },
-];
+const COMMODITY_META: Record<string, { name: string; unit: string }> = {
+  WTI: { name: "Crude Oil (WTI)", unit: "$/barrel" },
+  BRENT: { name: "Crude Oil (Brent)", unit: "$/barrel" },
+  NATURAL_GAS: { name: "Natural Gas", unit: "$/MMBtu" },
+  COPPER: { name: "Copper", unit: "$/lb" },
+  ALUMINUM: { name: "Aluminum", unit: "$/mt" },
+};
+
+function parseAlphaVantageData(symbol: string, json: Record<string, unknown>): CommodityPrice | null {
+  const meta = COMMODITY_META[symbol];
+  if (!meta) return null;
+
+  const series = json["data"] as { date: string; value: string }[] | undefined;
+  if (!series || series.length < 2) return null;
+
+  const valid = series.filter((d: { value: string }) => d.value !== ".");
+  if (valid.length < 2) return null;
+
+  const latest = parseFloat(valid[0].value);
+  const prev = parseFloat(valid[1].value);
+  const change = prev > 0 ? ((latest - prev) / prev) * 100 : 0;
+
+  return {
+    symbol,
+    name: meta.name,
+    price: latest,
+    change,
+    unit: meta.unit,
+    lastUpdated: valid[0].date,
+  };
+}
 
 export function useCommodities() {
   const [data, setData] = useState<CommodityPrice[]>([]);
   const update = useDataSourceStore((s) => s.update);
-  const apiKey = API.commodities.apiKey;
   const fetching = useRef(false);
 
   const fetchAll = useCallback(async () => {
-    if (!apiKey || fetching.current) return;
+    if (fetching.current) return;
     fetching.current = true;
     update("commodities", { status: "loading" });
 
-    const results: CommodityPrice[] = [];
+    try {
+      // Single request to our backend proxy — it handles caching + rate limits
+      const res = await fetch(API.commodities.proxyUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const payload = await res.json();
 
-    // Fetch up to 5 commodities. Free tier = 25 requests/day, so be conservative.
-    for (const commodity of COMMODITIES) {
-      try {
-        const url = `${API.commodities.baseUrl}?function=${commodity.fn}&interval=daily&apikey=${apiKey}`;
-        const res = await fetch(url);
-        const json = await res.json();
-
-        // Rate limited
-        if (json["Note"] || json["Information"]) break;
-
-        const series = json["data"] as { date: string; value: string }[] | undefined;
-        if (series && series.length >= 2) {
-          // Get latest non-"." values
-          const valid = series.filter((d: { value: string }) => d.value !== ".");
-          if (valid.length >= 2) {
-            const latest = parseFloat(valid[0].value);
-            const prev = parseFloat(valid[1].value);
-            const change = prev > 0 ? ((latest - prev) / prev) * 100 : 0;
-
-            results.push({
-              symbol: commodity.fn,
-              name: commodity.name,
-              price: latest,
-              change,
-              unit: commodity.unit,
-              lastUpdated: valid[0].date,
-            });
-          }
-        }
-        // 1.5s delay between requests (free tier: 5 req/min)
-        await new Promise((r) => setTimeout(r, 1500));
-      } catch {
-        // skip failed commodities
+      const results: CommodityPrice[] = [];
+      for (const [symbol, json] of Object.entries(payload)) {
+        const parsed = parseAlphaVantageData(symbol, json as Record<string, unknown>);
+        if (parsed) results.push(parsed);
       }
-    }
 
-    if (results.length > 0) {
-      setData(results);
-      update("commodities", { status: "success", count: results.length, lastUpdated: new Date(), error: null });
-    } else {
-      update("commodities", { status: "error", error: "No data (rate limit?)" });
+      if (results.length > 0) {
+        setData(results);
+        update("commodities", { status: "success", count: results.length, lastUpdated: new Date(), error: null });
+      } else {
+        update("commodities", { status: "error", error: "No commodity data" });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      update("commodities", { status: "error", error: msg });
     }
 
     fetching.current = false;
-  }, [apiKey, update]);
+  }, [update]);
 
   useEffect(() => {
-    if (!apiKey) {
-      update("commodities", { status: "idle" });
-      return;
-    }
     fetchAll();
     const id = setInterval(fetchAll, API.commodities.interval);
     return () => clearInterval(id);
-  }, [apiKey, fetchAll, update]);
+  }, [fetchAll, update]);
 
   return { data };
 }
