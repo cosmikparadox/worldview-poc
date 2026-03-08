@@ -1,0 +1,154 @@
+import type { Context } from "@netlify/functions";
+
+// In-memory ship cache — survives warm invocations
+let shipCache = new Map<number, ShipPosition>();
+let lastCollectionTime = 0;
+const COLLECTION_WINDOW = 7000; // collect for 7 seconds per WS connection
+const CACHE_TTL = 60 * 1000; // serve cached data for 60s
+const MAX_SHIPS = 5000;
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Content-Type": "application/json",
+  "Cache-Control": "public, max-age=15",
+};
+
+interface ShipPosition {
+  mmsi: number;
+  lat: number;
+  lon: number;
+  cog: number;
+  sog: number;
+  name: string;
+  shipType: number;
+  timestamp: number;
+}
+
+function collectFromAisStream(apiKey: string): Promise<ShipPosition[]> {
+  return new Promise((resolve) => {
+    const collected: ShipPosition[] = [];
+    let resolved = false;
+
+    const done = () => {
+      if (resolved) return;
+      resolved = true;
+      try { ws.close(); } catch {}
+      resolve(collected);
+    };
+
+    // Safety timeout
+    const timeout = setTimeout(done, COLLECTION_WINDOW + 2000);
+
+    const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+
+    ws.addEventListener("open", () => {
+      ws.send(JSON.stringify({
+        APIKey: apiKey,
+        BoundingBoxes: [[[-90, -180], [90, 180]]],
+        FilterMessageTypes: ["PositionReport"],
+      }));
+
+      // Stop collecting after COLLECTION_WINDOW
+      setTimeout(done, COLLECTION_WINDOW);
+    });
+
+    ws.addEventListener("message", (event) => {
+      try {
+        const msg = JSON.parse(String(event.data));
+        if (msg.MessageType !== "PositionReport") return;
+
+        const meta = msg.MetaData || msg.Metadata;
+        const pos = msg.Message?.PositionReport;
+        if (!meta?.MMSI || !pos) return;
+
+        const lat = pos.Latitude ?? meta.latitude ?? 0;
+        const lon = pos.Longitude ?? meta.longitude ?? 0;
+        if (lat === 0 && lon === 0) return;
+
+        collected.push({
+          mmsi: meta.MMSI,
+          lat,
+          lon,
+          cog: pos.Cog ?? 0,
+          sog: pos.Sog ?? 0,
+          name: (meta.ShipName || `MMSI ${meta.MMSI}`).trim(),
+          shipType: pos.ShipType ?? 0,
+          timestamp: Date.now(),
+        });
+      } catch {}
+    });
+
+    ws.addEventListener("error", () => done());
+    ws.addEventListener("close", () => {
+      clearTimeout(timeout);
+      done();
+    });
+  });
+}
+
+export default async (req: Request, _context: Context) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
+  const apiKey = process.env.VITE_AISSTREAM_API_KEY || "";
+  if (!apiKey) {
+    return new Response(JSON.stringify({ ships: [], count: 0 }), {
+      headers: { ...CORS_HEADERS, "X-Cache": "NO-KEY" },
+    });
+  }
+
+  const now = Date.now();
+
+  // Serve from cache if fresh enough
+  if (shipCache.size > 0 && now - lastCollectionTime < CACHE_TTL) {
+    const ships = [...shipCache.values()];
+    return new Response(JSON.stringify({ ships, count: ships.length }), {
+      headers: { ...CORS_HEADERS, "X-Cache": "HIT" },
+    });
+  }
+
+  // Collect fresh data from AISStream
+  try {
+    const newShips = await collectFromAisStream(apiKey);
+
+    // Merge into cache (update existing, add new)
+    for (const ship of newShips) {
+      shipCache.set(ship.mmsi, ship);
+    }
+
+    // Evict old entries if over limit
+    if (shipCache.size > MAX_SHIPS) {
+      const sorted = [...shipCache.entries()]
+        .sort((a, b) => b[1].timestamp - a[1].timestamp)
+        .slice(0, MAX_SHIPS);
+      shipCache = new Map(sorted);
+    }
+
+    lastCollectionTime = now;
+    const ships = [...shipCache.values()];
+
+    return new Response(JSON.stringify({ ships, count: ships.length }), {
+      headers: {
+        ...CORS_HEADERS,
+        "X-Cache": "MISS",
+        "X-New-Ships": String(newShips.length),
+        "X-Total-Ships": String(ships.length),
+      },
+    });
+  } catch {
+    // Serve stale if available
+    if (shipCache.size > 0) {
+      const ships = [...shipCache.values()];
+      return new Response(JSON.stringify({ ships, count: ships.length }), {
+        headers: { ...CORS_HEADERS, "X-Cache": "STALE" },
+      });
+    }
+    return new Response(JSON.stringify({ ships: [], count: 0 }), {
+      headers: { ...CORS_HEADERS, "X-Cache": "EMPTY" },
+    });
+  }
+};
+
+export const config = { path: "/api/ships" };

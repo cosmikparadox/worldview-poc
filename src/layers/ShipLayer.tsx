@@ -10,8 +10,9 @@ import {
   ScreenSpaceEventType,
   defined,
 } from "cesium";
-import { useShips } from "../hooks/useShips";
+import { useDataHubStore } from "../datahub/dataHubStore";
 import { useSelectionStore } from "../stores/useSelectionStore";
+import type { MaritimeTrack } from "../datahub/types";
 
 const SHIP_COLOR = Color.fromCssColorString("#22ddaa").withAlpha(0.85);
 const SHIP_OUTLINE = Color.fromCssColorString("#0a6644").withAlpha(0.5);
@@ -28,7 +29,7 @@ function shipTypeLabel(type: number): string {
 
 export function ShipLayer() {
   const { viewer } = useCesium();
-  const { data } = useShips();
+  const data = useDataHubStore((s) => s.data.maritime) as MaritimeTrack[] | undefined;
   const select = useSelectionStore((s) => s.select);
   const collectionRef = useRef<PointPrimitiveCollection | null>(null);
   const handlerRef = useRef<ScreenSpaceEventHandler | null>(null);
@@ -54,14 +55,14 @@ export function ShipLayer() {
             source: "ship",
             id: String(s.mmsi),
             title: s.name,
-            description: `${shipTypeLabel(s.shipType)} · ${s.sog.toFixed(1)} kn · COG ${Math.round(s.cog)}°`,
+            description: `${shipTypeLabel(s.shipType)} · ${s.speed.toFixed(1)} kn · COG ${Math.round(s.course)}°`,
             lat: s.lat,
             lon: s.lon,
             meta: {
               mmsi: s.mmsi,
               type: shipTypeLabel(s.shipType),
-              speed: `${s.sog.toFixed(1)} kn`,
-              course: `${Math.round(s.cog)}°`,
+              speed: `${s.speed.toFixed(1)} kn`,
+              course: `${Math.round(s.course)}°`,
             },
           });
         }
