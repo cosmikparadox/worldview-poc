@@ -16,9 +16,7 @@ export default defineConfig({
       ],
     }),
   ],
-  define: {
-    CESIUM_BASE_URL: JSON.stringify(`/${cesiumBase}`),
-  },
+  // CESIUM_BASE_URL is set via <script> in index.html before modules load
   build: {
     target: "esnext",
     chunkSizeWarningLimit: 5000,
