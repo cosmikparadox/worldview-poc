@@ -25,37 +25,57 @@ interface ShipPosition {
   timestamp: number;
 }
 
-function collectFromAisStream(apiKey: string): Promise<ShipPosition[]> {
+interface CollectResult {
+  ships: ShipPosition[];
+  debug: string;
+}
+
+function collectFromAisStream(apiKey: string): Promise<CollectResult> {
   return new Promise((resolve) => {
     const collected: ShipPosition[] = [];
+    const log: string[] = [];
     let resolved = false;
 
-    const done = () => {
+    const done = (reason: string) => {
       if (resolved) return;
       resolved = true;
+      log.push(`done:${reason}:${collected.length}ships`);
       try { ws.close(); } catch {}
-      resolve(collected);
+      resolve({ ships: collected, debug: log.join("|") });
     };
 
     // Safety timeout
-    const timeout = setTimeout(done, COLLECTION_WINDOW + 2000);
+    const timeout = setTimeout(() => done("timeout"), COLLECTION_WINDOW + 2000);
 
-    const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+      log.push("ws-created");
+    } catch (e) {
+      log.push(`ws-create-error:${e}`);
+      resolve({ ships: [], debug: log.join("|") });
+      return;
+    }
 
     ws.addEventListener("open", () => {
+      log.push("ws-open");
       ws.send(JSON.stringify({
         APIKey: apiKey,
         BoundingBoxes: [[[-90, -180], [90, 180]]],
         FilterMessageTypes: ["PositionReport"],
       }));
+      log.push("sub-sent");
 
       // Stop collecting after COLLECTION_WINDOW
-      setTimeout(done, COLLECTION_WINDOW);
+      setTimeout(() => done("collection-complete"), COLLECTION_WINDOW);
     });
 
     ws.addEventListener("message", (event) => {
       try {
         const msg = JSON.parse(String(event.data));
+        if (log.length < 3 || !log.some(l => l.startsWith("msg:"))) {
+          log.push(`msg:${msg.MessageType || "unknown"}`);
+        }
         if (msg.MessageType !== "PositionReport") return;
 
         const meta = msg.MetaData || msg.Metadata;
@@ -79,10 +99,14 @@ function collectFromAisStream(apiKey: string): Promise<ShipPosition[]> {
       } catch {}
     });
 
-    ws.addEventListener("error", () => done());
-    ws.addEventListener("close", () => {
+    ws.addEventListener("error", (e) => {
+      log.push(`ws-error:${e.type || "unknown"}`);
+      done("error");
+    });
+    ws.addEventListener("close", (e) => {
+      log.push(`ws-close:code=${e.code},reason=${e.reason}`);
       clearTimeout(timeout);
-      done();
+      done("close");
     });
   });
 }
@@ -111,7 +135,8 @@ export default async (req: Request, _context: Context) => {
 
   // Collect fresh data from AISStream
   try {
-    const newShips = await collectFromAisStream(apiKey);
+    const result = await collectFromAisStream(apiKey);
+    const newShips = result.ships;
 
     // Merge into cache (update existing, add new)
     for (const ship of newShips) {
@@ -135,6 +160,7 @@ export default async (req: Request, _context: Context) => {
         "X-Cache": "MISS",
         "X-New-Ships": String(newShips.length),
         "X-Total-Ships": String(ships.length),
+        "X-Debug": result.debug.substring(0, 200),
       },
     });
   } catch {
