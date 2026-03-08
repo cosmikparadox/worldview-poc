@@ -29,6 +29,5 @@ export const viewerOptions = {
   selectionIndicator: false,
   timeline: false,
   navigationHelpButton: false,
-  requestRenderMode: true,
-  maximumRenderTimeChange: 0.5, // re-render at least every 0.5s when idle
+  requestRenderMode: false, // continuous rendering — needed for Resium entity updates
 };

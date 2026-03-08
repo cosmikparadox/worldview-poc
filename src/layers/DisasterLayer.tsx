@@ -1,5 +1,5 @@
 import { Entity, CustomDataSource } from "resium";
-import { Cartesian3, Color, DistanceDisplayCondition } from "cesium";
+import { Cartesian3, Color, DistanceDisplayCondition, NearFarScalar } from "cesium";
 import { useDisasters } from "../hooks/useDisasters";
 import type { Disaster } from "../hooks/useDisasters";
 import { useSelectionStore } from "../stores/useSelectionStore";
@@ -28,21 +28,23 @@ export function DisasterLayer() {
           key={d.id}
           position={Cartesian3.fromDegrees(d.lon, d.lat)}
           point={{
-            pixelSize: 12,
-            color: categoryColor(d.category),
-            outlineColor: Color.WHITE,
+            pixelSize: 16,
+            color: categoryColor(d.category).withAlpha(0.9),
+            outlineColor: Color.WHITE.withAlpha(0.7),
             outlineWidth: 2,
+            scaleByDistance: new NearFarScalar(5e5, 1.6, 2e7, 0.5),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
           }}
           label={{
             text: d.category,
-            font: "11px monospace",
+            font: "bold 11px monospace",
             fillColor: Color.WHITE,
             outlineColor: Color.BLACK,
-            outlineWidth: 2,
+            outlineWidth: 3,
             style: 2,
-            pixelOffset: { x: 0, y: -18 } as any,
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 5_000_000),
+            pixelOffset: { x: 0, y: -20 } as any,
+            scaleByDistance: new NearFarScalar(5e5, 1.0, 8e6, 0),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, 8_000_000),
           }}
           onClick={() =>
             select({

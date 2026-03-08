@@ -15,25 +15,25 @@ export function FlightLayer() {
       {flights.map((f: Flight) => (
         <Entity
           key={f.id}
-          position={Cartesian3.fromDegrees(f.lon, f.lat, f.altitude)}
+          position={Cartesian3.fromDegrees(f.lon, f.lat, Math.max(f.altitude, 100))}
           point={{
-            pixelSize: 4,
-            color: Color.fromCssColorString("#66bbff").withAlpha(0.8),
-            outlineColor: Color.fromCssColorString("#3388cc"),
+            pixelSize: 5,
+            color: Color.fromCssColorString("#55bbff").withAlpha(0.9),
+            outlineColor: Color.fromCssColorString("#2266aa").withAlpha(0.5),
             outlineWidth: 1,
-            scaleByDistance: new NearFarScalar(1e3, 2.0, 8e6, 0.3),
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 30_000_000),
+            scaleByDistance: new NearFarScalar(1e4, 2.5, 1.5e7, 0.4),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, 40_000_000),
           }}
           label={{
-            text: f.callsign || f.id.slice(0, 6),
+            text: f.callsign || "",
             font: "10px monospace",
             fillColor: Color.fromCssColorString("#88ccff"),
             outlineColor: Color.BLACK,
             outlineWidth: 2,
             style: 2,
             pixelOffset: { x: 0, y: -10 } as any,
-            scaleByDistance: new NearFarScalar(1e3, 1.0, 3e6, 0),
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 2_000_000),
+            scaleByDistance: new NearFarScalar(1e4, 1.0, 2e6, 0),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, 1_500_000),
           }}
           onClick={() =>
             select({

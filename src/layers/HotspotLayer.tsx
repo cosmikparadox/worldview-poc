@@ -1,5 +1,5 @@
 import { Entity, CustomDataSource } from "resium";
-import { Cartesian3, Color, VerticalOrigin, DistanceDisplayCondition } from "cesium";
+import { Cartesian3, Color, VerticalOrigin, DistanceDisplayCondition, NearFarScalar } from "cesium";
 import { HOTSPOTS } from "../config/hotspots";
 import { useSelectionStore } from "../stores/useSelectionStore";
 
@@ -13,10 +13,11 @@ export function HotspotLayer() {
           key={h.id}
           position={Cartesian3.fromDegrees(h.lon, h.lat)}
           point={{
-            pixelSize: 14,
+            pixelSize: 18,
             color: Color.fromCssColorString(h.color).withAlpha(0.9),
-            outlineColor: Color.WHITE,
+            outlineColor: Color.WHITE.withAlpha(0.8),
             outlineWidth: 2,
+            scaleByDistance: new NearFarScalar(5e5, 1.4, 2e7, 0.5),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
           }}
           label={{
@@ -27,7 +28,8 @@ export function HotspotLayer() {
             outlineWidth: 3,
             style: 2,
             verticalOrigin: VerticalOrigin.BOTTOM,
-            pixelOffset: { x: 0, y: -14 } as any,
+            pixelOffset: { x: 0, y: -16 } as any,
+            scaleByDistance: new NearFarScalar(5e5, 1.0, 1.5e7, 0),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 15_000_000),
           }}
           onClick={() =>

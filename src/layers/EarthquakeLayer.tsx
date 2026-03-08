@@ -9,19 +9,18 @@ function magToColor(mag: number): Color {
   if (mag >= 7) return Color.fromCssColorString("#ff2020");
   if (mag >= 5) return Color.fromCssColorString("#ff8844");
   if (mag >= 3) return Color.fromCssColorString("#ffcc22");
-  return Color.fromCssColorString("#44dd88");
+  return Color.fromCssColorString("#66cc66");
 }
 
 const cluster = new EntityCluster({
   enabled: true,
-  pixelRange: 40,
-  minimumClusterSize: 3,
+  pixelRange: 30,
+  minimumClusterSize: 6,
 });
 
 export function EarthquakeLayer() {
   const { data } = useEarthquakes();
   const select = useSelectionStore((s) => s.select);
-
   const quakes = useMemo(() => data || [], [data]);
 
   return (
@@ -31,11 +30,11 @@ export function EarthquakeLayer() {
           key={eq.id}
           position={Cartesian3.fromDegrees(eq.lon, eq.lat)}
           point={{
-            pixelSize: 6 + eq.mag * 2.5,
-            color: magToColor(eq.mag),
-            outlineColor: Color.BLACK,
+            pixelSize: 8 + eq.mag * 3,
+            color: magToColor(eq.mag).withAlpha(0.85),
+            outlineColor: Color.BLACK.withAlpha(0.5),
             outlineWidth: 1,
-            scaleByDistance: new NearFarScalar(1e3, 1.5, 1e7, 0.4),
+            scaleByDistance: new NearFarScalar(5e5, 1.8, 2e7, 0.5),
             distanceDisplayCondition: new DistanceDisplayCondition(0, 50_000_000),
           }}
           description={`<b>${eq.title}</b><br/>Magnitude: ${eq.mag}<br/>Depth: ${eq.depth.toFixed(1)} km<br/>Time: ${new Date(eq.time).toUTCString()}`}

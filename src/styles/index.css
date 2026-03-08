@@ -438,3 +438,55 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #05
   font-size: 12px;
   padding: 30px 10px;
 }
+
+/* ─── Activity Ticker (bottom-right) ─────── */
+.activity-ticker {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(8, 14, 28, 0.92);
+  border: 1px solid #1a2540;
+  border-radius: 10px;
+  padding: 10px 14px;
+  backdrop-filter: blur(10px);
+  z-index: 45;
+  min-width: 180px;
+  animation: fadeIn 0.3s ease;
+}
+.at-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.at-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22dd88;
+  animation: pulse 1.5s infinite;
+}
+.at-label {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: #22dd88;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.at-total {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: #445566;
+  margin-left: auto;
+}
+.at-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+.at-source { color: #8899bb; flex: 1; }
+.at-count { color: #00e5b0; min-width: 32px; text-align: right; }
+.at-age { color: #445566; font-size: 9px; min-width: 28px; text-align: right; }

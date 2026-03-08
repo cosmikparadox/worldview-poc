@@ -1,15 +1,15 @@
 import { Entity, CustomDataSource } from "resium";
-import { Cartesian3, Color, DistanceDisplayCondition } from "cesium";
+import { Cartesian3, Color, DistanceDisplayCondition, NearFarScalar } from "cesium";
 import { useNews } from "../hooks/useNews";
 import type { NewsEvent } from "../hooks/useNews";
 import { useSelectionStore } from "../stores/useSelectionStore";
 import { useMemo } from "react";
 
 function toneColor(tone: number): Color {
-  if (tone < -3) return Color.fromCssColorString("#ff4466"); // very negative
-  if (tone < 0) return Color.fromCssColorString("#cc7744"); // negative
-  if (tone > 3) return Color.fromCssColorString("#44cc88"); // positive
-  return Color.fromCssColorString("#a06fff"); // neutral
+  if (tone < -3) return Color.fromCssColorString("#ff4466");
+  if (tone < 0) return Color.fromCssColorString("#cc7744");
+  if (tone > 3) return Color.fromCssColorString("#44cc88");
+  return Color.fromCssColorString("#bb88ff");
 }
 
 export function NewsLayer() {
@@ -24,11 +24,12 @@ export function NewsLayer() {
           key={n.id}
           position={Cartesian3.fromDegrees(n.lon, n.lat)}
           point={{
-            pixelSize: 7,
-            color: toneColor(n.tone),
-            outlineColor: Color.fromCssColorString("#ffffff").withAlpha(0.4),
+            pixelSize: 10,
+            color: toneColor(n.tone).withAlpha(0.85),
+            outlineColor: Color.WHITE.withAlpha(0.3),
             outlineWidth: 1,
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 30_000_000),
+            scaleByDistance: new NearFarScalar(5e5, 1.6, 2e7, 0.4),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, 40_000_000),
           }}
           onClick={() =>
             select({
