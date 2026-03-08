@@ -12,10 +12,10 @@ export const useLayerStore = create<LayerState>((set) => ({
   layers: {
     earthquakes: true,
     disasters: true,
-    flights: false,
-    ships: false,
-    news: false,
-    conflicts: false,
+    flights: true,
+    ships: false, // needs API key
+    news: true,
+    conflicts: false, // needs API key
     hotspots: true,
     spaceWeather: true,
   },

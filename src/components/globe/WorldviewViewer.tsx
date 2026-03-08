@@ -1,6 +1,6 @@
 import { Viewer, CameraFlyTo } from "resium";
 import { viewerOptions } from "../../config/cesium";
-import { Cartesian3 } from "cesium";
+import { Cartesian3, Math as CesiumMath } from "cesium";
 import type { ReactNode } from "react";
 
 interface Props {
@@ -15,7 +15,12 @@ export function WorldviewViewer({ children }: Props) {
       style={{ position: "absolute", inset: 0 }}
     >
       <CameraFlyTo
-        destination={Cartesian3.fromDegrees(40, 25, 20_000_000)}
+        destination={Cartesian3.fromDegrees(30, 20, 18_000_000)}
+        orientation={{
+          heading: CesiumMath.toRadians(0),
+          pitch: CesiumMath.toRadians(-90),
+          roll: 0,
+        }}
         duration={0}
         once
       />

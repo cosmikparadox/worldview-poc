@@ -1,58 +1,85 @@
-import { Entity, CustomDataSource } from "resium";
-import { Cartesian3, Color, NearFarScalar, DistanceDisplayCondition } from "cesium";
+import { useEffect, useRef } from "react";
+import { useCesium } from "resium";
+import {
+  PointPrimitiveCollection,
+  Cartesian2,
+  Cartesian3,
+  Color,
+  NearFarScalar,
+  ScreenSpaceEventHandler,
+  ScreenSpaceEventType,
+  defined,
+} from "cesium";
 import { useFlights } from "../hooks/useFlights";
-import type { Flight } from "../hooks/useFlights";
 import { useSelectionStore } from "../stores/useSelectionStore";
-import { useMemo } from "react";
 
 export function FlightLayer() {
+  const { viewer } = useCesium();
   const { data } = useFlights();
   const select = useSelectionStore((s) => s.select);
-  const flights = useMemo(() => data || [], [data]);
+  const collectionRef = useRef<PointPrimitiveCollection | null>(null);
+  const handlerRef = useRef<ScreenSpaceEventHandler | null>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
-  return (
-    <CustomDataSource name="flights">
-      {flights.map((f: Flight) => (
-        <Entity
-          key={f.id}
-          position={Cartesian3.fromDegrees(f.lon, f.lat, Math.max(f.altitude, 100))}
-          point={{
-            pixelSize: 5,
-            color: Color.fromCssColorString("#55bbff").withAlpha(0.9),
-            outlineColor: Color.fromCssColorString("#2266aa").withAlpha(0.5),
-            outlineWidth: 1,
-            scaleByDistance: new NearFarScalar(1e4, 2.5, 1.5e7, 0.4),
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 40_000_000),
-          }}
-          label={{
-            text: f.callsign || "",
-            font: "10px monospace",
-            fillColor: Color.fromCssColorString("#88ccff"),
-            outlineColor: Color.BLACK,
-            outlineWidth: 2,
-            style: 2,
-            pixelOffset: { x: 0, y: -10 } as any,
-            scaleByDistance: new NearFarScalar(1e4, 1.0, 2e6, 0),
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 1_500_000),
-          }}
-          onClick={() =>
-            select({
-              source: "flight",
-              id: f.id,
-              title: f.callsign || f.id,
-              description: `${f.country} · ${Math.round(f.altitude)}m alt · ${Math.round(f.velocity)} m/s`,
-              lat: f.lat,
-              lon: f.lon,
-              meta: {
-                altitude: f.altitude,
-                velocity: f.velocity,
-                heading: f.heading,
-                country: f.country,
-              },
-            })
-          }
-        />
-      ))}
-    </CustomDataSource>
-  );
+  // Create PointPrimitiveCollection once
+  useEffect(() => {
+    if (!viewer) return;
+    const collection = new PointPrimitiveCollection();
+    viewer.scene.primitives.add(collection);
+    collectionRef.current = collection;
+
+    // Click handler for flights
+    const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction((movement: { position: Cartesian2 }) => {
+      const picked = viewer.scene.pick(movement.position);
+      if (defined(picked) && picked.primitive && picked.collection === collection) {
+        const idx = picked.primitive._index ?? -1;
+        const flights = dataRef.current;
+        if (flights && idx >= 0 && idx < flights.length) {
+          const f = flights[idx];
+          select({
+            source: "flight",
+            id: f.id,
+            title: f.callsign || f.id,
+            description: `${f.country} · ${Math.round(f.altitude)}m alt · ${Math.round(f.velocity * 3.6)} km/h`,
+            lat: f.lat,
+            lon: f.lon,
+            meta: {
+              altitude: f.altitude,
+              velocity: Math.round(f.velocity * 3.6),
+              heading: Math.round(f.heading),
+              country: f.country,
+            },
+          });
+        }
+      }
+    }, ScreenSpaceEventType.LEFT_CLICK);
+    handlerRef.current = handler;
+
+    return () => {
+      viewer.scene.primitives.remove(collection);
+      handler.destroy();
+    };
+  }, [viewer, select]);
+
+  // Update points when data changes
+  useEffect(() => {
+    const collection = collectionRef.current;
+    if (!collection || !data) return;
+
+    collection.removeAll();
+    for (const f of data) {
+      collection.add({
+        position: Cartesian3.fromDegrees(f.lon, f.lat, Math.max(f.altitude, 500)),
+        pixelSize: 4,
+        color: Color.fromCssColorString("#55bbff").withAlpha(0.85),
+        outlineColor: Color.fromCssColorString("#1155aa").withAlpha(0.4),
+        outlineWidth: 1,
+        scaleByDistance: new NearFarScalar(5e4, 3.0, 2e7, 0.5),
+      });
+    }
+  }, [data]);
+
+  return null; // Rendering is handled directly via Cesium primitives
 }
